@@ -2,6 +2,8 @@
 
 Unity / C# 게임 프로젝트 포트폴리오입니다. 프로젝트마다 PDF와 PPT를 따로 정리했습니다.
 
+**웹 포트폴리오:** https://kimdongjun22.github.io/game-portfolio/
+
 | 프로젝트 | 형태 | 장르 | 담당 | PDF | PPT |
 |---|---|---|---|---|---|
 | UnityCooperationProject | 5인 팀 · 2주 | 3D 공 굴리기 액션 | 팀 공용 플레이어 컨트롤러(PB), 카메라 | [보기](UnityCooperationProject_portfolio.pdf) | [다운로드](UnityCooperationProject_portfolio.pptx) |

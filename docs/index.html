@@ -1,0 +1,59 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>김동준 — 게임 클라이언트 포트폴리오</title><meta name="description" content="Unity / C# 게임 프로젝트 6종 포트폴리오"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07090f;--panel:#0d1220;--panel2:#121a2d;--line:rgba(255,255,255,.09);--ink:#e8ecf5;--muted:#8d97ad;--a:#ff6b2c;--a2:#ffb86b;--glow:rgba(255,107,44,.45)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;background:var(--bg)}
+body{font-family:"Noto Sans KR",system-ui,sans-serif;color:var(--ink);line-height:1.65;word-break:keep-all;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+.mono{font-family:"JetBrains Mono",Consolas,monospace}
+.orb{font-family:Orbitron,"Noto Sans KR",sans-serif;letter-spacing:.06em}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+/* 배경: 움직이는 원근 그리드 + 노이즈 스캔라인 */
+.bg{position:fixed;inset:0;z-index:-2;overflow:hidden;background:radial-gradient(1200px 600px at 70% -10%,var(--glow),transparent 60%),radial-gradient(900px 500px at -10% 110%,rgba(80,120,255,.18),transparent 60%),var(--bg)}
+.grid{position:absolute;left:-50%;right:-50%;bottom:-10%;height:70%;background-image:linear-gradient(var(--a) 1px,transparent 1px),linear-gradient(90deg,var(--a) 1px,transparent 1px);background-size:60px 60px;opacity:.13;transform:perspective(500px) rotateX(62deg);transform-origin:bottom;animation:gridmove 4s linear infinite;mask-image:linear-gradient(to top,#000 20%,transparent 85%)}
+@keyframes gridmove{to{background-position:0 60px}}
+.scan{position:fixed;inset:0;z-index:-1;pointer-events:none;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.025) 0 1px,transparent 1px 3px)}
+/* 상단 HUD 바 */
+.hud{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 24px;background:linear-gradient(to bottom,rgba(7,9,15,.92),rgba(7,9,15,0));backdrop-filter:blur(6px)}
+.hud .brand{font-size:13px;color:var(--a)}
+.hud nav{display:flex;gap:18px;font-size:13px;color:var(--muted)}
+.hud nav a:hover{color:var(--ink)}
+.xp{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--a),var(--a2));box-shadow:0 0 12px var(--a);z-index:60}
+/* 공통 패널 */
+.panel{position:relative;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.01));border:1px solid var(--line);border-radius:14px;backdrop-filter:blur(8px)}
+.panel.corners::before,.panel.corners::after{content:"";position:absolute;width:18px;height:18px;border:2px solid var(--a);opacity:.9}
+.panel.corners::before{top:-2px;left:-2px;border-right:0;border-bottom:0;border-radius:14px 0 0 0}
+.panel.corners::after{bottom:-2px;right:-2px;border-left:0;border-top:0;border-radius:0 0 14px 0}
+section{padding:110px 0 30px}
+.sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:28px;flex-wrap:wrap}
+.sec-head .no{font-size:13px;color:var(--a);padding:4px 10px;border:1px solid var(--a);border-radius:6px;box-shadow:0 0 14px var(--glow) inset}
+.sec-head h2{font-size:clamp(26px,4vw,38px);font-weight:900;letter-spacing:-.01em}
+.sec-head .en{font-size:12px;color:var(--muted)}
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}
+.reveal.on{opacity:1;transform:none}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:10px;border:1px solid var(--a);color:#fff;background:linear-gradient(135deg,var(--a),color-mix(in srgb,var(--a) 60%,#000));box-shadow:0 0 22px var(--glow);font-weight:700;font-size:14px;transition:transform .2s}
+.btn:hover{transform:translateY(-2px)}
+.btn.ghost{background:transparent;box-shadow:none;border-color:var(--line);color:var(--ink)}
+@media (prefers-reduced-motion:reduce){.grid{animation:none}.reveal{opacity:1;transform:none;transition:none}*{animation-duration:.001s!important}}
+</style><style>
+.hero{padding:140px 0 40px;text-align:center}
+.hero .kind{font-size:12px;color:var(--a)}
+.hero h1{font-size:clamp(40px,8vw,88px);font-weight:900;line-height:1.05;margin:16px 0;text-shadow:0 0 30px var(--glow)}
+.hero p{color:var(--muted);font-size:17px}
+.stages{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;padding:30px 0 80px}
+.stage{--c:#fff;display:flex;flex-direction:column;padding:24px;min-height:250px;transition:transform .25s,box-shadow .25s,border-color .25s;overflow:hidden}
+.stage::after{content:"";position:absolute;right:-60px;top:-60px;width:180px;height:180px;border-radius:50%;background:var(--c);opacity:.14;filter:blur(10px);transition:opacity .25s}
+.stage:hover{transform:translateY(-6px);border-color:var(--c);box-shadow:0 14px 50px -12px var(--c)}
+.stage:hover::after{opacity:.3}
+.stage .no{font-size:12px;color:var(--c)}
+.stage h2{font-size:24px;margin:8px 0 2px}
+.stage .g{font-size:13px;color:var(--muted)}
+.stage .r{margin-top:14px;font-size:15px;flex:1}
+.stage .go{margin-top:16px;font-size:12px;color:var(--c)}
+@media (max-width:900px){.stages{grid-template-columns:1fr 1fr}}@media (max-width:600px){.stages{grid-template-columns:1fr}}</style></head><body><div class="bg"><div class="grid"></div></div><div class="scan"></div><div class="xp"></div>
+<main class="wrap"><div class="hero"><div class="kind orb">GAME CLIENT PORTFOLIO</div><h1 class="orb">SELECT STAGE</h1><p>김동준 · Unity / C# 게임 클라이언트 · 프로젝트를 선택하세요</p></div>
+<div class="stages"><a class="panel stage" style="--c:#E8590C" href="UnityCooperationProject.html"><div class="no orb">STAGE 01 · TEAM PROJECT</div><h2>Ball Rolling</h2><div class="g">UnityCooperationProject · 2025.04.25 ~ 05.08 (2주)</div><div class="r"> 팀 공용 플레이어 컨트롤러(PB) 담당</div><div class="go orb">▶ START</div></a><a class="panel stage" style="--c:#2F9E44" href="UnityCrossClassProject.html"><div class="no orb">STAGE 02 · TEAM PROJECT</div><h2>UnityCrossClassProject</h2><div class="g">유니티 사전 합반 프로젝트 · 2025.06.18 ~ 07.08 (3주)</div><div class="r"> 플레이어 액션 기능 담당</div><div class="go orb">▶ START</div></a><a class="panel stage" style="--c:#D6336C" href="PokeSuvival.html"><div class="no orb">STAGE 03 · TEAM PROJECT</div><h2>PokeSuvival</h2><div class="g">1조 팀 프로젝트 · 2025.07.22 ~ 08.12 (3주)</div><div class="r"> 성장·스킬·사운드 모듈 담당</div><div class="go orb">▶ START</div></a><a class="panel stage" style="--c:#7048E8" href="gun-project.html"><div class="no orb">STAGE 04 · SOLO PROJECT</div><h2>gun-project</h2><div class="g">1인 개발 프로토타입 2종 · 2025.05.29 ~ 06.04 (1주)</div><div class="r"> 기획부터 개발까지 혼자</div><div class="go orb">▶ START</div></a><a class="panel stage" style="--c:#1971C2" href="CollectingRPG.html"><div class="no orb">STAGE 05 · TEAM PROJECT</div><h2>CollectingRPG</h2><div class="g">모바일 수집형 RPG · 2025.08.14 ~ 10.16 (2개월)</div><div class="r"> 브랜치 통합 관리 · UI 연출 프로토타입</div><div class="go orb">▶ START</div></a><a class="panel stage" style="--c:#C2255C" href="RUNA.html"><div class="no orb">STAGE 06 · TEAM PROJECT · RELEASED</div><h2>RUNA</h2><div class="g">Google Play 출시작 · 2023.02.12 ~ 03.26</div><div class="r"> 아트·리소스, QA</div><div class="go orb">▶ START</div></a></div></main>
+<footer><div class="wrap"><div class="links"><a class="btn" href="mailto:dkdl01028@icloud.com">✉ dkdl01028@icloud.com</a><a class="btn ghost" href="https://github.com/kimdongjun22" target="_blank" rel="noopener">GitHub</a></div></div></footer>
+<div class="xp"></div><script>const xp=document.querySelector('.xp');addEventListener('scroll',()=>{const h=document.documentElement;xp.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight||1)*100)+'%'},{passive:true});</script></body></html>

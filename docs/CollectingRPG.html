@@ -1,0 +1,205 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CollectingRPG — 김동준 게임 포트폴리오</title><meta name="description" content="오토배틀 · 로그라이크 맵 — 브랜치 통합 관리 · UI 연출 프로토타입"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07090f;--panel:#0d1220;--panel2:#121a2d;--line:rgba(255,255,255,.09);--ink:#e8ecf5;--muted:#8d97ad;--a:#ff6b2c;--a2:#ffb86b;--glow:rgba(255,107,44,.45)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;background:var(--bg)}
+body{font-family:"Noto Sans KR",system-ui,sans-serif;color:var(--ink);line-height:1.65;word-break:keep-all;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+.mono{font-family:"JetBrains Mono",Consolas,monospace}
+.orb{font-family:Orbitron,"Noto Sans KR",sans-serif;letter-spacing:.06em}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+/* 배경: 움직이는 원근 그리드 + 노이즈 스캔라인 */
+.bg{position:fixed;inset:0;z-index:-2;overflow:hidden;background:radial-gradient(1200px 600px at 70% -10%,var(--glow),transparent 60%),radial-gradient(900px 500px at -10% 110%,rgba(80,120,255,.18),transparent 60%),var(--bg)}
+.grid{position:absolute;left:-50%;right:-50%;bottom:-10%;height:70%;background-image:linear-gradient(var(--a) 1px,transparent 1px),linear-gradient(90deg,var(--a) 1px,transparent 1px);background-size:60px 60px;opacity:.13;transform:perspective(500px) rotateX(62deg);transform-origin:bottom;animation:gridmove 4s linear infinite;mask-image:linear-gradient(to top,#000 20%,transparent 85%)}
+@keyframes gridmove{to{background-position:0 60px}}
+.scan{position:fixed;inset:0;z-index:-1;pointer-events:none;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.025) 0 1px,transparent 1px 3px)}
+/* 상단 HUD 바 */
+.hud{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 24px;background:linear-gradient(to bottom,rgba(7,9,15,.92),rgba(7,9,15,0));backdrop-filter:blur(6px)}
+.hud .brand{font-size:13px;color:var(--a)}
+.hud nav{display:flex;gap:18px;font-size:13px;color:var(--muted)}
+.hud nav a:hover{color:var(--ink)}
+.xp{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--a),var(--a2));box-shadow:0 0 12px var(--a);z-index:60}
+/* 공통 패널 */
+.panel{position:relative;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.01));border:1px solid var(--line);border-radius:14px;backdrop-filter:blur(8px)}
+.panel.corners::before,.panel.corners::after{content:"";position:absolute;width:18px;height:18px;border:2px solid var(--a);opacity:.9}
+.panel.corners::before{top:-2px;left:-2px;border-right:0;border-bottom:0;border-radius:14px 0 0 0}
+.panel.corners::after{bottom:-2px;right:-2px;border-left:0;border-top:0;border-radius:0 0 14px 0}
+section{padding:110px 0 30px}
+.sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:28px;flex-wrap:wrap}
+.sec-head .no{font-size:13px;color:var(--a);padding:4px 10px;border:1px solid var(--a);border-radius:6px;box-shadow:0 0 14px var(--glow) inset}
+.sec-head h2{font-size:clamp(26px,4vw,38px);font-weight:900;letter-spacing:-.01em}
+.sec-head .en{font-size:12px;color:var(--muted)}
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}
+.reveal.on{opacity:1;transform:none}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:10px;border:1px solid var(--a);color:#fff;background:linear-gradient(135deg,var(--a),color-mix(in srgb,var(--a) 60%,#000));box-shadow:0 0 22px var(--glow);font-weight:700;font-size:14px;transition:transform .2s}
+.btn:hover{transform:translateY(-2px)}
+.btn.ghost{background:transparent;box-shadow:none;border-color:var(--line);color:var(--ink)}
+@media (prefers-reduced-motion:reduce){.grid{animation:none}.reveal{opacity:1;transform:none;transition:none}*{animation-duration:.001s!important}}
+:root{--a:#1971C2;--a2:#81b1dd;--glow:rgba(25,113,194,0.45)}</style><style>
+/* 히어로 */
+.hero{min-height:100vh;display:flex;align-items:center;padding:120px 0 60px}
+.hero .kind{display:inline-flex;gap:10px;align-items:center;font-size:12px;color:var(--a);border:1px solid color-mix(in srgb,var(--a) 50%,transparent);padding:6px 12px;border-radius:999px;background:color-mix(in srgb,var(--a) 10%,transparent)}
+.hero .kind i{width:8px;height:8px;border-radius:50%;background:var(--a);box-shadow:0 0 10px var(--a);animation:blink 1.4s infinite}
+@keyframes blink{50%{opacity:.25}}
+.hero h1{font-size:clamp(44px,9vw,104px);font-weight:900;line-height:1.02;margin:22px 0 8px;position:relative;text-shadow:0 0 30px var(--glow)}
+.glitch{position:relative;display:inline-block}
+.glitch::before,.glitch::after{content:attr(data-t);position:absolute;inset:0;opacity:.7}
+.glitch::before{color:#00e5ff;transform:translate(2px,0);clip-path:inset(0 0 60% 0);animation:g1 3.2s infinite steps(1)}
+.glitch::after{color:var(--a);transform:translate(-2px,0);clip-path:inset(55% 0 0 0);animation:g2 2.7s infinite steps(1)}
+@keyframes g1{0%,92%{transform:none;opacity:0}93%{transform:translate(4px,-2px);opacity:.8}96%{transform:translate(-3px,1px)}}
+@keyframes g2{0%,88%{transform:none;opacity:0}89%{transform:translate(-4px,2px);opacity:.8}93%{transform:translate(3px,-1px)}}
+.hero .sub2{font-size:16px;color:var(--muted)}
+.hero .tagline{font-size:clamp(17px,2.2vw,22px);margin:18px 0 26px;max-width:820px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:34px}
+.chip{font-size:12px;padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
+.char{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:900px}
+.char .panel{padding:16px 18px}
+.char .k{font-size:11px;color:var(--a);font-weight:700}
+.char .v{font-size:16px;font-weight:700;margin-top:4px}
+.press{margin-top:46px;font-size:13px;color:var(--muted);animation:blink 1.6s infinite}
+/* 스탯 */
+.statgrid{display:grid;grid-template-columns:1.25fr 1fr;gap:22px;align-items:stretch}
+.intro{padding:28px;font-size:17px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.stat{padding:20px;overflow:hidden}
+.stat .n{font-size:clamp(28px,4vw,40px);font-weight:900;color:var(--a);text-shadow:0 0 18px var(--glow);line-height:1.1}
+.stat .l{font-size:13px;color:var(--muted);margin-top:6px}
+.stat .bar{height:6px;border-radius:9px;background:rgba(255,255,255,.07);margin-top:14px;overflow:hidden}
+.stat .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--a),var(--a2));box-shadow:0 0 10px var(--a);transition:width 1.4s cubic-bezier(.2,.7,.2,1)}
+.flow{margin-top:22px;padding:22px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.flow .lbl{font-size:12px;color:var(--a);margin-right:8px}
+.node{padding:9px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);font-size:14px;font-weight:500}
+.node.first{border-color:var(--a);box-shadow:0 0 16px var(--glow)}
+.arrow{color:var(--a);opacity:.7;font-weight:900}
+/* 파티(표) */
+.tbl{width:100%;border-collapse:separate;border-spacing:0 8px;font-size:15px}
+.tbl th{font-size:12px;color:var(--muted);text-align:left;padding:0 18px;font-weight:700}
+.tbl td{padding:15px 18px;background:var(--panel);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.tbl td:first-child{border-left:1px solid var(--line);border-radius:10px 0 0 10px;font-weight:700;white-space:nowrap}
+.tbl td:last-child{border-right:1px solid var(--line);border-radius:0 10px 10px 0}
+.tbl tr.me td{background:color-mix(in srgb,var(--a) 14%,var(--panel));border-color:color-mix(in srgb,var(--a) 60%,transparent);box-shadow:0 0 24px color-mix(in srgb,var(--a) 22%,transparent)}
+.tbl tr.me td:first-child::after{content:"YOU";font-family:Orbitron;font-size:10px;margin-left:8px;padding:2px 6px;border-radius:4px;background:var(--a);color:#000}
+.tbl-wrap{overflow-x:auto}
+/* 스킬 트리 */
+.callout{padding:20px 24px;margin-bottom:22px;font-size:16px;font-weight:500;border-left:0}
+.callout b{color:var(--a)}
+.skills{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.skill{padding:24px;display:flex;gap:18px;transition:transform .25s,border-color .25s,box-shadow .25s}
+.skill:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--a) 70%,transparent);box-shadow:0 10px 40px -10px var(--glow)}
+.skill .ic{flex:none;width:52px;height:52px;border-radius:12px;display:grid;place-items:center;font-family:Orbitron;font-weight:900;font-size:18px;color:#000;background:linear-gradient(135deg,var(--a2),var(--a));box-shadow:0 0 20px var(--glow);transform:rotate(45deg)}
+.skill .ic span{transform:rotate(-45deg)}
+.skill h3{font-size:19px;margin-bottom:6px}
+.skill p{color:var(--muted);font-size:15px}
+.skill .lv{font-size:11px;color:var(--a);margin-bottom:4px}
+.shot{margin-top:18px;padding:10px}
+.shot img{width:100%;border-radius:10px;display:block}
+/* 코드 터미널 */
+.codebox{display:grid;grid-template-columns:1.55fr 1fr;gap:20px;margin-bottom:22px}
+.term{overflow:hidden;background:#0a0e18}
+.term .bar{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}
+.term .bar i{width:11px;height:11px;border-radius:50%;background:#ff5f57}
+.term .bar i:nth-child(2){background:#febc2e}.term .bar i:nth-child(3){background:#28c840;margin-right:8px}
+.term pre{padding:18px 20px;font-size:13.5px;line-height:1.6;overflow-x:auto;color:#d6deeb}
+.term .k{color:#c792ea}.term .t{color:#ffcb6b}.term .s{color:#c3e88d}.term .n{color:#f78c6c}.term .c{color:#637777;font-style:italic}.term .f{color:#82aaff}
+.cap{padding:24px}
+.cap .q{font-size:12px;color:var(--a);margin-bottom:6px}
+.cap h3{font-size:21px;margin-bottom:16px}
+.cap ol{list-style:none;display:grid;gap:12px}
+.cap li{display:flex;gap:12px;font-size:15px}
+.cap li b{flex:none;width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font-size:12px;background:color-mix(in srgb,var(--a) 20%,transparent);color:var(--a);border:1px solid color-mix(in srgb,var(--a) 50%,transparent)}
+/* 퀘스트 로그 */
+.quest{position:relative;padding-left:34px;display:grid;gap:16px}
+.quest::before{content:"";position:absolute;left:11px;top:6px;bottom:6px;width:2px;background:linear-gradient(var(--a),transparent)}
+.q{position:relative;padding:18px 22px}
+.q::before{content:"✓";position:absolute;left:-34px;top:18px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:900;color:#000;background:var(--a);box-shadow:0 0 14px var(--glow)}
+.q .d{font-size:12px;color:var(--a)}
+.q h3{font-size:18px;margin:2px 0}
+.q p{color:var(--muted);font-size:15px}
+/* 버그 처치 */
+.bugs{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.bug{padding:22px}
+.bug .tag{display:inline-block;font-size:11px;padding:3px 8px;border-radius:5px;background:#ff3b5c22;color:#ff7b93;border:1px solid #ff3b5c66;margin-bottom:10px}
+.bug h3{font-size:17px;margin-bottom:8px}
+.bug .row{font-size:14px;color:var(--muted)}
+.bug .row b{color:var(--ink);font-weight:700;margin-right:6px}
+.bug .fix{margin-top:10px;font-size:14px;color:#7ee2a8}
+/* 스테이지 클리어 */
+.clear{padding:44px 34px;text-align:center;overflow:hidden}
+.clear .big{font-size:clamp(34px,6vw,64px);font-weight:900;background:linear-gradient(90deg,var(--a2),var(--a),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent;background-size:200%;animation:shine 4s linear infinite}
+@keyframes shine{to{background-position:200% 0}}
+.stars{font-size:28px;letter-spacing:8px;color:var(--a2);text-shadow:0 0 14px var(--glow);margin:6px 0 26px}
+.retro{display:grid;grid-template-columns:1fr 1fr;gap:18px;text-align:left}
+.retro .panel{padding:24px}
+.retro h3{font-size:18px;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.retro h3 span{font-size:11px;padding:3px 8px;border-radius:5px;background:var(--a);color:#000}
+.retro ul{list-style:none;display:grid;gap:10px}
+.retro li{position:relative;padding-left:20px;color:#cdd4e3;font-size:15px}
+.retro li::before{content:"▸";position:absolute;left:0;color:var(--a)}
+footer{padding:80px 0 60px;text-align:center;color:var(--muted)}
+footer .orb{font-size:clamp(26px,5vw,42px);color:var(--ink);font-weight:900;margin-bottom:10px}
+footer .links{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:22px 0}
+.others{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:18px;font-size:13px}
+.others a{padding:6px 12px;border:1px solid var(--line);border-radius:8px}
+.others a:hover,.others a.cur{border-color:var(--a);color:var(--a)}
+.statgrid>*,.codebox>*,.retro>*,.skills>*,.bugs>*,.char>*,.stats>*,.stages>*{min-width:0}
+.hero h1{overflow-wrap:anywhere}
+.hero>.wrap{width:100%;min-width:0}.skill>div{min-width:0}
+body{overflow-wrap:anywhere}
+@media (max-width:600px){.hero h1{font-size:clamp(30px,10vw,44px)}.stats{grid-template-columns:1fr 1fr}.stat{padding:16px}.intro{padding:20px;font-size:16px}}
+@media (max-width:860px){.statgrid,.codebox,.retro{grid-template-columns:1fr}.skills,.bugs{grid-template-columns:1fr}.char{grid-template-columns:1fr}.hud nav{display:none}.tbl{font-size:14px}.tbl td{padding:12px}}
+</style></head><body><div class="bg"><div class="grid"></div></div><div class="scan"></div><div class="xp"></div>
+<header class="hud"><a class="brand orb" href="index.html">◀ SELECT STAGE</a><nav><a href="#about">소개</a><a href="#party">상세</a><a href="#skills">구현</a><a href="#code">코드</a><a href="#retro">회고</a></nav></header>
+<main><div class="hero"><div class="wrap">
+<span class="kind orb"><i></i>TEAM PROJECT</span>
+<h1 class="orb"><span class="glitch" data-t="CollectingRPG">CollectingRPG</span></h1>
+<div class="sub2">모바일 수집형 RPG</div>
+<p class="tagline">오토배틀 · 로그라이크 맵 — 브랜치 통합 관리 · UI 연출 프로토타입</p>
+<div class="chips"><span class="chip mono">Unity 2022.3</span><span class="chip mono">C#</span><span class="chip mono">URP</span><span class="chip mono">DOTween</span><span class="chip mono">Addressables</span><span class="chip mono">Firebase</span></div>
+<div class="char"><div class="panel corners"><div class="k orb">기간</div><div class="v">2025.08.14 ~ 10.16 (2개월)</div></div><div class="panel corners"><div class="k orb">인원</div><div class="v">6~7인 팀</div></div><div class="panel corners"><div class="k orb">담당</div><div class="v">브랜치 통합 · DOTween UI</div></div></div>
+<div class="press orb">▼ PRESS START — SCROLL</div>
+</div></div>
+<section id="about"><div class="wrap"><div class="sec-head reveal"><span class="no orb">01</span><h2>프로젝트 소개</h2><span class="en orb">MISSION BRIEFING</span></div>
+  <div class="statgrid"><div class="panel corners intro reveal"><p>가챠로 캐릭터를 모으고 강화·편성한 뒤, 배치와 시너지로 싸우는 자동 전투와 노드형 로그라이크 맵을 진행하는 모바일 수집형 RPG입니다. C# 파일 416개 규모의 중규모 프로젝트입니다.</p></div>
+  <div class="stats"><div class="panel stat reveal"><div class="n orb" data-count="6~7인">6~7인</div><div class="l">팀 · 약 2개월</div><div class="bar"><i data-w="92%"></i></div></div><div class="panel stat reveal"><div class="n orb" data-count="5회">5회</div><div class="l">develop 브랜치 통합</div><div class="bar"><i data-w="78%"></i></div></div><div class="panel stat reveal"><div class="n orb" data-count="7개">7개</div><div class="l">UI 연출 스크립트</div><div class="bar"><i data-w="66%"></i></div></div><div class="panel stat reveal"><div class="n orb" data-count="416개">416개</div><div class="l">프로젝트 전체 C# 파일</div><div class="bar"><i data-w="84%"></i></div></div></div></div>
+  <div class="panel flow reveal"><span class="lbl orb">GAME LOOP</span><span class="node first">가챠 수집</span><span class="arrow">›</span><span class="node">강화·편성</span><span class="arrow">›</span><span class="node">스테이지 선택</span><span class="arrow">›</span><span class="node">맵 진행</span><span class="arrow">›</span><span class="node">자동 전투</span><span class="arrow">›</span><span class="node">보상</span></div></div></section>
+<section id="party"><div class="wrap"><div class="sec-head reveal"><span class="no orb">02</span><h2>담당 ① 브랜치 통합 관리</h2><span class="en orb">DETAILS</span></div>
+  <div class="tbl-wrap reveal"><table class="tbl"><thead><tr><th>날짜</th><th>브랜치 통합 내용</th></tr></thead><tbody>
+  <tr class=""><td>08.18</td><td>feat/CharComposition(캐릭터 편성) → develop</td></tr><tr class=""><td>08.18</td><td>main → feat/Sign-in (로그인 브랜치 최신화)</td></tr><tr class=""><td>08.21</td><td>JJM(UI) → feat/Unit</td></tr><tr class=""><td>08.21</td><td>feat/CharComposition → develop</td></tr><tr class=""><td>08.21</td><td>feat/Unit(유닛) → develop</td></tr></tbody></table></div></div></section>
+<section id="skills"><div class="wrap"><div class="sec-head reveal"><span class="no orb">03</span><h2>담당 ② DOTween UI 연출 프로토타입</h2><span class="en orb">SKILL TREE</span></div>
+  <div class="panel corners callout reveal">프로젝트 초기 팀원들의 기능 브랜치를 develop으로 합치는 통합 작업을 맡아 5건을 충돌 없이 반영했고, 개인 브랜치(KDJ_UI)에서 DOTween UI 연출을 실험했습니다.</div>
+  <div class="skills"><div class="panel skill reveal"><div class="ic"><span>1</span></div><div><div class="lv orb">SKILL 01</div><h3>팝업 연출</h3><p>PanelHandler: DOTween Sequence로 커졌다 줄어들며 열고 닫기. 끝나면 OnComplete로 비활성화</p></div></div><div class="panel skill reveal"><div class="ic"><span>2</span></div><div><div class="lv orb">SKILL 02</div><h3>버튼 피드백</h3><p>ButtonHandler: 눌림 효과(0.95 → 1.05 → 1.0) 후 팝업 호출</p></div></div><div class="panel skill reveal"><div class="ic"><span>3</span></div><div><div class="lv orb">SKILL 03</div><h3>메인 메뉴</h3><p>MainMenu: 버튼 핸들러, 종료는 #if UNITY_EDITOR로 에디터/빌드 분리</p></div></div><div class="panel skill reveal"><div class="ic"><span>4</span></div><div><div class="lv orb">SKILL 04</div><h3>포물선 발사체</h3><p>Projectile: DOJump로 포물선 궤적 테스트</p></div></div></div>
+  </div></section>
+<section id="code"><div class="wrap"><div class="sec-head reveal"><span class="no orb">04</span><h2>대표 코드</h2><span class="en orb">SOURCE</span></div>
+  <div class="codebox"><div class="panel term reveal"><div class="bar"><i></i><i></i><i></i><span class="mono">PanelHandler.cs</span></div><pre class="mono"><span class="k">public</span> <span class="k">void</span> <span class="t">Show</span>()
+{
+    gameObject.<span class="t">SetActive</span>(<span class="k">true</span>);
+    <span class="k">var</span> seq = <span class="t">DOTween</span>.<span class="t">Sequence</span>();
+    seq.<span class="t">Append</span>(transform.<span class="t">DOScale</span>(<span class="n">1.1f</span>, <span class="n">0.2f</span>));
+    seq.<span class="t">Append</span>(transform.<span class="t">DOScale</span>(<span class="n">1f</span>, <span class="n">0.1f</span>));
+    seq.<span class="t">Play</span>();
+}
+
+<span class="k">public</span> <span class="k">void</span> <span class="t">Hide</span>()
+{
+    <span class="k">var</span> seq = <span class="t">DOTween</span>.<span class="t">Sequence</span>();
+    transform.localScale = <span class="t">Vector3</span>.one * <span class="n">0.2f</span>;
+    seq.<span class="t">Append</span>(transform.<span class="t">DOScale</span>(<span class="n">1.1f</span>, <span class="n">0.1f</span>));
+    seq.<span class="t">Append</span>(transform.<span class="t">DOScale</span>(<span class="n">0.2f</span>, <span class="n">0.2f</span>));
+    seq.<span class="t">Play</span>().<span class="t">OnComplete</span>(() =&gt; { gameObject.<span class="t">SetActive</span>(<span class="k">false</span>); });
+}</pre></div>
+  <div class="panel cap reveal"><div class="q orb">CODE 01</div><h3>DOTween Sequence 팝업 열기/닫기</h3><ol><li><b class="orb">1</b><span>살짝 커졌다가 안착하는 팝업 연출</span></li><li><b class="orb">2</b><span>연출이 끝난 시점에 비활성화 (OnComplete)</span></li><li><b class="orb">3</b><span>버튼 → 팝업으로 연출을 연결</span></li></ol></div></div></div></section>
+<section id="retro"><div class="wrap"><div class="sec-head reveal"><span class="no orb">05</span><h2>회고</h2><span class="en orb">STAGE CLEAR</span></div><div class="panel corners clear reveal"><div class="big orb">STAGE CLEAR</div><div class="stars">★ ★ ★</div>
+  <div class="retro"><div class="panel"><h3><span class="orb">EXP</span>배운 점</h3><ul><li>6~7명 규모에서 기능 브랜치 통합을 맡아 Git 브랜치 전략을 실전으로 경험</li><li>DOTween Sequence와 OnComplete로 연출 종료 시점에 상태 전환</li></ul></div><div class="panel"><h3><span class="orb">NEXT</span>아쉬운 점과 개선 계획</h3><ul><li>UI 연출을 PR까지 다듬지 못해 최종 게임에 미반영</li><li>작업 브랜치에 다른 SDK 파일이 섞임 → 커밋 범위 관리</li><li>작은 단위로 자주 PR, 공용 PopupManager에 연출을 붙이는 방향으로 설계</li></ul></div></div></div></div></section>
+</main>
+<footer><div class="wrap"><div class="orb">THANKS FOR PLAYING</div><div>김동준 · Unity / C# 게임 클라이언트</div>
+<div class="links"><a class="btn" href="mailto:dkdl01028@icloud.com">✉ dkdl01028@icloud.com</a><a class="btn ghost" href="https://github.com/kimdongjun22" target="_blank" rel="noopener">GitHub</a><a class="btn ghost" href="https://github.com/HSD06040/CollectingRPG" target="_blank" rel="noopener">프로젝트 저장소</a></div>
+<div class="others"><a class="" href="UnityCooperationProject.html">Ball Rolling</a><a class="" href="UnityCrossClassProject.html">UnityCrossClassProject</a><a class="" href="PokeSuvival.html">PokeSuvival</a><a class="" href="gun-project.html">gun-project</a><a class="cur" href="CollectingRPG.html">CollectingRPG</a><a class="" href="RUNA.html">RUNA</a></div></div></footer>
+<script>
+(()=>{const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;e.target.classList.add('on');
+e.target.querySelectorAll('[data-count]').forEach(el=>{const raw=el.dataset.count,m=raw.match(/^(\D*)(\d+)(.*)$/);if(!m)return;const end=+m[2];let t0;const step=t=>{t0??=t;const p=Math.min(1,(t-t0)/1100);el.textContent=m[1]+Math.round(end*(1-Math.pow(1-p,3)))+m[3];if(p<1)requestAnimationFrame(step)};requestAnimationFrame(step)});
+e.target.querySelectorAll('.bar i').forEach(b=>b.style.width=b.dataset.w);io.unobserve(e.target)}),{threshold:.15});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const xp=document.querySelector('.xp');addEventListener('scroll',()=>{const h=document.documentElement;xp.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%'},{passive:true});})();
+</script></body></html>
